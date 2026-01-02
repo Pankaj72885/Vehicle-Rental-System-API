@@ -15,4 +15,11 @@ router.post(
 
 router.get('/', auth('admin', 'customer'), BookingController.getAllBookings);
 
+router.put(
+  '/:bookingId',
+  auth('admin', 'customer'),
+  validateRequest(BookingValidation.updateBookingSchema),
+  BookingController.updateBooking,
+);
+
 export const BookingRoutes = router;

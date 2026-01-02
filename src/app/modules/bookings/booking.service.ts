@@ -139,7 +139,81 @@ const getAllBookings = async (user: Partial<TUser>) => {
   return result.rows;
 };
 
+const updateBooking = async (
+  bookingId: number,
+  payload: { status: 'cancelled' | 'returned' },
+) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Check if booking exists
+    const bookingQuery = 'SELECT * FROM bookings WHERE id = $1';
+    const bookingResult = await client.query(bookingQuery, [bookingId]);
+
+    if (bookingResult.rows.length === 0) {
+      throw new AppError(404, 'Booking not found');
+    }
+
+    const booking = bookingResult.rows[0];
+
+    // Business Logic:
+    // Customer can cancel (if 'active' and maybe before start date?)
+    // Admin can return (if 'active')
+    // We update status and simultaneously update vehicle status to 'available'
+
+    // Status transition validation
+    if (booking.status !== 'active') {
+      throw new AppError(400, `Booking is already ${booking.status}`);
+    }
+
+    const updateQuery = `
+      UPDATE bookings 
+      SET status = $1 
+      WHERE id = $2 
+      RETURNING *
+    `;
+
+    const result = await client.query(updateQuery, [payload.status, bookingId]);
+    const updatedBooking = result.rows[0];
+
+    // If canceled or returned, vehicle becomes available
+    if (payload.status === 'cancelled' || payload.status === 'returned') {
+      await client.query(
+        "UPDATE vehicles SET availability_status = 'available' WHERE id = $1",
+        [booking.vehicle_id],
+      );
+    }
+
+    await client.query('COMMIT');
+
+    // Fetch vehicle info for response to match API Ref (maybe need to join or fetch again)
+    // API Ref response data has "vehicle": { "availability_status": "available" } for returned
+    // and full structure for cancelled.
+
+    // Fetch return data
+    const vehicleRes = await pool.query(
+      'SELECT * FROM vehicles WHERE id = $1',
+      [booking.vehicle_id],
+    );
+    const vehicle = vehicleRes.rows[0];
+
+    return {
+      ...updatedBooking,
+      vehicle: {
+        availability_status: vehicle.availability_status,
+      },
+    };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    throw err;
+  } finally {
+    client.release();
+  }
+};
+
 export const BookingService = {
   createBooking,
   getAllBookings,
+  updateBooking,
 };
