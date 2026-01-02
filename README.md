@@ -1,121 +1,170 @@
-# Vehicle Rental System API
+# Vehicle Rental System API 🚗
 
-A backend API for a detailed Vehicle Rental Management System, built with Express.js, PostgreSQL (Raw Queries), and TypeScript.
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://vehicle-rental-system-api-kappa.vercel.app/)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?style=for-the-badge&logo=github)](https://github.com/Pankaj72885/Vehicle-Rental-System-API)
 
-## 🚀 Features
+A robust and scalable backend API for a **Vehicle Rental Management System**. This project demonstrates a professional-grade backend architecture built with **TypeScript**, **Express.js**, and **PostgreSQL**. It is designed to handle the core operations of a rental business, including inventory management, booking workflows, user roles, and automated price calculations.
 
-- **Authentication**: Secure User Signup & Signin (JWT, Bcrypt).
-- **User Management**: CRUD operations, Role-based access (Admin/Customer).
-- **Vehicle Management**: Manage vehicle inventory (CRUD).
-- **Booking System**: Create bookings with auto-price calculation, manage booking status (Active/Returned/Cancelled).
-- **Validation**: Robust input validation using Zod.
-- **Error Handling**: Centralized error handling with consistent response formats.
+## 🌟 Project Overview
 
-## 🛠 Tech Stack
+This API serves as the backbone for a car rental platform. It features a complete booking lifecycle management system where customers can browse available vehicles, make bookings with automated cost calculation based on rental duration, and manage their reservations. Administrators have full control over the fleet, user base, and can oversee all booking activities.
 
-- **Language**: TypeScript
-- **Framework**: Express.js
-- **Database**: PostgreSQL
-- **Driver**: `pg` (node-postgres)
-- **ODM/ORM**: None (Raw SQL)
-- **Validation**: Zod
-- **Linting/Formatting**: ESLint, Prettier
+The project highlights strict **input validation**, **error handling**, **authorization guards**, and **modular code structure**, making it a secure and maintainable solution.
 
-## ⚙️ Prerequisites
+## 🚀 Key Features
 
-- Node.js (v18+)
-- PostgreSQL installed and running
-- npm or yarn
+- **🔐 Secure Authentication**:
+  - JWT-based stateless authentication.
+  - Password hashing using Bcrypt.
+  - Role-based Access Control (RBAC) for `Admin` and `Customer`.
+- **👥 User Management**:
+  - Profile management and role-based permissions.
+  - Admins can view and manage all users; Customers manage their own profiles.
+- **🚙 Fleet Management**:
+  - Full CRUD operations for vehicles (Cars, Bikes, SUVs, Vans).
+  - Real-time availability tracking (Available/Booked).
+- **📅 Smart Booking System**:
+  - **Automated Price Calculation**: Calculates total cost based on `daily_rate * duration`.
+  - **Availability Checks**: Prevents double-booking of vehicles.
+  - **Status Management**: Admins can mark cars as "Returned" (making them available again), and Customers can cancel upcoming bookings.
+- **🛡️ Robust Architecture**:
+  - **Zod Validation**: Strict schema validation for all inputs.
+  - **Global Error Handling**: Standardized error responses involved Zod, Cast, and Duplicate errors.
+  - **Modular Pattern**: Code organized by modules (`auth`, `users`, `vehicles`, `bookings`) for scalability.
 
-## 📦 Installation
+## 🛠 Technology Stack
 
-1.  **Clone the repository**:
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Framework**: [Express.js](https://expressjs.com/)
+- **Database**: [PostgreSQL](https://www.postgresql.org/)
+- **Query Interface**: Raw SQL (via `pg` node-postgres driver)
+- **Validation**: [Zod](https://zod.dev/)
+- **Deployment**: Vercel
 
-    ```bash
-    git clone <repository_url>
-    cd VRS
-    ```
+## 🔑 User Credentials (Demo)
 
-2.  **Install dependencies**:
+You can use the following credentials to test the live API endpoints:
 
-    ```bash
-    npm install
-    ```
+### **👤 Admin Account**
 
-3.  **Setup Environment Variables**:
-    Create a `.env` file in the root directory and configure it (see `.env.example`).
+- **Email**: `admin@example.com`
+- **Password**: `password123`
+- **Access**: Full access to Vehicles, Users, and all Bookings.
 
-    ```env
-    NODE_ENV=development
-    PORT=5000
-    DATABASE_URL=postgresql://user:password@localhost:5432/vrs_db
-    BCRYPT_SALT_ROUNDS=12
-    JWT_SECRET=supersecret
-    ```
+### **👤 Customer Account**
 
-4.  **Setup Database**:
-    This command runs migrations to create tables and seeds the database with an Admin user.
-    ```bash
-    npm run db:setup
-    ```
-    _Note: Ensure your PostgreSQL server is running and the database specified in `DATABASE_URL` exists before running this._
-
-## 🏃‍♂️ Running the Project
-
-- **Development Mode**:
-
-  ```bash
-  npm run dev
+- **Action**: You can register a new customer via the Signup endpoint.
+- **Example Body**:
+  ```json
+  POST /api/v1/auth/signup
+  {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "password123",
+    "phone": "01711223344",
+    "role": "customer",
+    "address": "Dhaka, Bangladesh"
+  }
   ```
+- **Access**: Can book vehicles, view own bookings, and cancel own bookings.
 
-- **Production Build**:
-  ```bash
-  npm run build
-  npm start
-  ```
+## 📖 Usage Instructions & API Endpoints
 
-## 📜 API Endpoints
+**Base URL**: `https://vehicle-rental-system-api-kappa.vercel.app/api/v1`
 
-### Auth
+### 1. Authentication
 
-- `POST /api/v1/auth/signup` - Register a new user
-- `POST /api/v1/auth/signin` - Login user
+- **Signup**: `POST /auth/signup` - Register as a new user.
+- **Signin**: `POST /auth/signin` - Login to get an `accessToken`.
+  - _Note_: Include this token in the `Authorization` header (`Bearer <token>`) for protected routes.
 
-### Users
+### 2. Vehicles (Public & Admin)
 
-- `GET /api/v1/users` - Get all users (Admin only)
-- `GET /api/v1/users/:id` - Get user details
-- `PUT /api/v1/users/:id` - Update profile (Admin or Owner)
-- `DELETE /api/v1/users/:id` - Delete user (Admin only)
+- **List Vehicles**: `GET /vehicles` - View all vehicles (Public).
+- **Get Vehicle**: `GET /vehicles/:id` - View details of a specific vehicle.
+- **Add Vehicle**: `POST /vehicles` (Admin Only).
+- **Update Vehicle**: `PUT /vehicles/:id` (Admin Only).
+- **Delete Vehicle**: `DELETE /vehicles/:id` (Admin Only).
 
-### Vehicles
+### 3. Bookings
 
-- `POST /api/v1/vehicles` - Add a vehicle (Admin only)
-- `GET /api/v1/vehicles` - List all vehicles
-- `GET /api/v1/vehicles/:id` - Get vehicle details
-- `PUT /api/v1/vehicles/:id` - Update vehicle (Admin only)
-- `DELETE /api/v1/vehicles/:id` - Delete vehicle (Admin only)
+- **Create Booking**: `POST /bookings` (Customer).
+  - Provide `vehicleId`, `rent_start_date`, `rent_end_date`.
+  - System validates availability and returns booking with calculated `total_price`.
+- **My Bookings**: `GET /bookings` - Lists your own bookings (Customer) or all bookings (Admin).
+- **Manage Booking**: `PUT /bookings/:id`
+  - **Customer**: Can send `status: "cancelled"` to cancel.
+  - **Admin**: Can send `status: "returned"` to close a rental and free up the vehicle.
 
-### Bookings
+### 4. User Profile
 
-- `POST /api/v1/bookings` - Create a booking (Values calculated automatically)
-- `GET /api/v1/bookings` - Get all bookings (Admin: all, Customer: own)
-- `PUT /api/v1/bookings/:bookingId` - Cancel (Customer) or Return (Admin) booking
+- **Update Profile**: `PUT /users/:id` - Update your own profile details.
+
+## 💻 Local Setup Guide
+
+Follow these steps to run the project locally on your machine.
+
+**1. Prerequisites**
+
+- Node.js (v18 or higher)
+- PostgreSQL installed and running.
+
+**2. Clone the Repository**
+
+```bash
+git clone https://github.com/Pankaj72885/Vehicle-Rental-System-API.git
+cd Vehicle-Rental-System-API
+```
+
+**3. Install Dependencies**
+
+```bash
+npm install
+```
+
+**4. Configure Environment**
+Create a `.env` file in the root directory:
+
+```env
+NODE_ENV=development
+PORT=5000
+DATABASE_URL=postgresql://<YOUR_USER>:<YOUR_PASSWORD>@localhost:5432/<YOUR_DB_NAME>
+BCRYPT_SALT_ROUNDS=12
+JWT_SECRET=your_super_secret_key
+```
+
+**5. Initialize Database**
+Run the setup script to create tables and seed the initial Admin user.
+
+```bash
+npm run db:setup
+```
+
+**6. Start the Server**
+
+```bash
+npm run dev
+```
+
+The server will start at `http://localhost:5000`.
 
 ## 🧪 Error Handling
 
-Standardized error responses:
+The API uses a standardized error response structure for easier debugging and frontend integration:
 
 ```json
 {
   "success": false,
-  "message": "Error description",
+  "message": "Validation Error",
   "errorMessages": [
     {
-      "path": "",
-      "message": "Detailed error"
+      "path": "email",
+      "message": "Invalid email address"
     }
-  ],
-  "stack": "..." // Only in development
+  ]
 }
 ```
+
+---
+
+**Developed by [Pankaj Bepari](https://github.com/Pankaj72885)**
