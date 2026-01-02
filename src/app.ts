@@ -1,5 +1,5 @@
 import cors from 'cors';
-import express, { Application, Request, Response } from 'express';
+import express, { Application, NextFunction, Request, Response } from 'express';
 
 const app: Application = express();
 
@@ -14,13 +14,11 @@ app.get('/', (req: Request, res: Response) => {
 
 import router from './app/routes';
 
-app.use(globalErrorHandler);
-
 // Application routes
 app.use('/api/v1', router);
 
 // Not Found Handler
-app.use((req: Request, res: Response) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(404).json({
     success: false,
     message: 'Not Found',
@@ -31,6 +29,9 @@ app.use((req: Request, res: Response) => {
       },
     ],
   });
+  next();
 });
+
+app.use(globalErrorHandler);
 
 export default app;
